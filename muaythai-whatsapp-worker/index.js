@@ -1,3 +1,5 @@
+require('dotenv').config(); // <-- 1. Carrega as variáveis de ambiente do arquivo .env
+
 const express = require('express');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
@@ -66,8 +68,10 @@ app.post('/api/whatsapp/enviar', async (req, res) => {
         return res.status(500).json({ error: 'Falha ao enviar a mensagem.' });
     }
 });
+
 // Inicializa o servidor local
-const PORT = 3000;
+// <-- 2. Agora ele busca a porta no .env. Se não achar, usa a 3000 como backup de segurança.
+const PORT = process.env.PORT || 3000; 
 app.listen(PORT, () => {
     console.log(`Microserviço do WhatsApp rodando na porta ${PORT}`);
     client.initialize();

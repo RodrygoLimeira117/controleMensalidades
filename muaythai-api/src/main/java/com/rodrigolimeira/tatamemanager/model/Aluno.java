@@ -4,6 +4,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 import java.time.LocalDate;
 
 @Entity
@@ -11,18 +17,28 @@ import java.time.LocalDate;
 public class Aluno {
 
     @Id
+    @NotBlank(message = "O CPF não pode estar vazio.")
+    @Size(min = 11, max = 11, message = "O CPF deve conter exatamente 11 dígitos.")
     @Column(length = 11, nullable = false, unique = true)
     private String cpf;
 
+    @NotBlank(message = "O nome completo é obrigatório.")
     @Column(name = "nome_completo", nullable = false)
     private String nomeCompleto;
 
+    @NotBlank(message = "O número de celular é obrigatório.")
+    @Size(min = 13, max = 13, message = "O celular deve conter 13 dígitos numéricos (DDI + DDD + Número).")
     @Column(nullable = false)
     private String celular;
 
+    @NotNull(message = "A idade é obrigatória.")
+    @Min(value = 5, message = "A idade mínima permitida é de 5 anos.")
     @Column(nullable = false)
     private Integer idade;
 
+    @NotNull(message = "O dia de vencimento é obrigatório.")
+    @Min(value = 1, message = "O dia de vencimento não pode ser menor que 1.")
+    @Max(value = 31, message = "O dia de vencimento não pode ser maior que 31.")
     @Column(name = "dia_vencimento", nullable = false)
     private Integer diaVencimento;
 
@@ -34,6 +50,9 @@ public class Aluno {
 
     @Column(name = "data_ultimo_aviso")
     private LocalDate dataUltimoAviso;
+
+    @Column(name = "data_matricula")
+    private LocalDate dataMatricula;
 
     // Construtor padrão exigido pelo JPA
     public Aluno() {
@@ -106,11 +125,20 @@ public class Aluno {
     public void setAtivo(boolean ativo) {
         this.ativo = ativo;
     }
+
     public LocalDate getDataUltimoAviso() {
         return dataUltimoAviso;
     }
 
     public void setDataUltimoAviso(LocalDate dataUltimoAviso) {
         this.dataUltimoAviso = dataUltimoAviso;
+    }
+
+    public LocalDate getDataMatricula() {
+        return dataMatricula;
+    }
+
+    public void setDataMatricula(LocalDate dataMatricula) {
+        this.dataMatricula = dataMatricula;
     }
 }
