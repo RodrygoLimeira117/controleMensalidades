@@ -1,0 +1,18 @@
+# --- Java / Spring Boot (muaythai-api) ---
+muaythai-api/target/
+muaythai-api/.mvn/
+muaythai-api/mvnw
+muaythai-api/mvnw.cmd
+muaythai-api/.idea/
+muaythai-api/*.iml
+
+# --- Node.js (muaythai-whatsapp-worker) ---
+**/node_modules/
+**/npm-debug.log*
+muaythai-whatsapp-worker/.wwebjs_auth/
+muaythai-whatsapp-worker/.wwebjs_cache/
+
+# --- Banco de Dados Local & Sistema ---
+banco_tatame*
+.DS_Store
+Thumbs.db
