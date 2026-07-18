@@ -64,5 +64,9 @@ npm start
 - **Segurança de Credentials:** Utilização de `.env` para proteção de portas e rotas.
 - **Exclusão Lógica (Soft Delete):** Atletas inativados não são apagados fisicamente da base de dados, mantendo o histórico financeiro intacto.
 
+## 📄 Licença
+
+Este projeto está licenciado sob os termos da licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
 ---
 *Desenvolvido para fortalecer o tatame com tecnologia.*
