@@ -4,7 +4,7 @@
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
 ![Electron](https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=Electron&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-00000F?style=for-the-badge&logo=mysql&logoColor=white)
+![H2](https://img.shields.io/badge/H2_Database-0000C0?style=for-the-badge&logo=h2&logoColor=white)
 
 Um ecossistema completo de software desenvolvido para automatizar a gestão de atletas, controle financeiro e cobrança inteligente de mensalidades da **Vipers Fight Team**. 
 
@@ -29,40 +29,67 @@ O projeto adota uma abordagem de Monorepo, contendo os seguintes módulos:
 ## ⚙️ Como Executar Localmente
 
 ### Pré-requisitos
-- JDK 17+
-- Node.js (v18+)
-- Banco de Dados SQL em execução na porta 3306
+- JDK 21+
+- Maven (para rodar `mvn spring-boot:run`)
+- Node.js 18+ (necessário para o worker e para o Electron)
+
+> Não é preciso instalar nenhum banco de dados: a API usa H2 em modo arquivo, criado automaticamente na primeira execução.
 
 ### 1. Backend (Java/Spring Boot)
-\`\`\`bash
+```bash
 cd muaythai-api
-# Configure as credenciais do banco de dados no application.properties
-./mvnw spring-boot:run
-\`\`\`
+mvn spring-boot:run
+```
 *A API ficará disponível em `http://localhost:8080`*
 
 ### 2. Worker do WhatsApp (Node.js)
-\`\`\`bash
+
+Não precisa rodar este passo manualmente: o app desktop liga o worker sozinho (aba Configurações → "Iniciar Robô") e mostra o QR code direto na tela. Isso só é necessário se quiser rodar o worker separadamente para depurar:
+```bash
 cd muaythai-whatsapp-worker
 npm install
 # Crie o ficheiro .env na raiz desta pasta com PORT=3000
 npm start
-\`\`\`
-*Um navegador Chrome abrirá. Escaneie o QR Code no terminal com o seu WhatsApp.*
+```
+*O Chrome roda invisível (headless); o QR code aparece no app desktop, não numa janela de navegador.*
 
 ### 3. Aplicativo Desktop (Electron)
-\`\`\`bash
+```bash
 cd muaythai-desktop-app
 npm install
 npm start
-\`\`\`
-*A interface gráfica da Vipers abrirá como uma aplicação nativa no seu sistema.*
+```
+*A interface gráfica da Vipers abrirá como uma aplicação nativa no seu sistema. Na aba Configurações, clique em "Iniciar Robô" para ligar o WhatsApp e escanear o QR code.*
 
 ## 🛡️ Segurança e Boas Práticas
 
 - **Validação de Entrada:** Máscaras no frontend e Bean Validation (`@Valid`, `@NotBlank`, `@Size`) no backend garantem integridade dos CPFs e telemóveis.
 - **Segurança de Credentials:** Utilização de `.env` para proteção de portas e rotas.
 - **Exclusão Lógica (Soft Delete):** Atletas inativados não são apagados fisicamente da base de dados, mantendo o histórico financeiro intacto.
+
+## 🔄 CI/CD
+
+Três workflows do GitHub Actions rodam automaticamente a cada push/PR que toque em cada módulo:
+
+- **`ci-api.yml`** — compila e roda os testes da API (`mvn verify`).
+- **`ci-worker.yml`** — valida se as dependências do worker instalam sem erro (`npm ci`).
+- **`ci-desktop.yml`** — idem, para o app desktop.
+
+Um quarto workflow, **`release-desktop.yml`**, gera o instalador Windows (`.exe`) automaticamente sempre que uma tag `v*` é publicada:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+O instalador fica disponível como artefato da execução, na aba *Actions* do repositório.
+
+### Gerando o instalador manualmente
+
+```bash
+cd muaythai-desktop-app
+npm install
+npm run dist
+```
+O instalador gerado (Windows: `.exe` via NSIS, macOS: `.dmg`, Linux: `.AppImage`) fica em `muaythai-desktop-app/dist/`.
 
 ## 📄 Licença
 
