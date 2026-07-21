@@ -1,0 +1,107 @@
+:root {
+    --viper-red: #E60000;
+    --viper-dark: #0a0a0a;
+    --viper-card: #141414;
+    --viper-border: #2a2a2a;
+    --text-main: #f0f0f0;
+    --text-muted: #b8b8b8;
+
+    /* O Bootstrap usa essas variáveis internamente (em .text-muted, .form-text,
+       placeholders, etc.) com tons calibrados para fundo claro. Sobrescrevendo
+       aqui, qualquer componente do Bootstrap que use essas cores já fica
+       legível no tema escuro, sem precisar sobrescrever classe por classe. */
+    --bs-body-color: var(--text-main);
+    --bs-secondary-color: var(--text-muted);
+    --bs-tertiary-color: var(--text-muted);
+    --bs-secondary-bg: var(--viper-card);
+    --bs-border-color: var(--viper-border);
+}
+
+/* Reforço explícito, para não depender só da variável do Bootstrap */
+.text-muted { color: var(--text-muted) !important; }
+small, .form-text, .swal2-html-container { color: var(--text-muted); }
+
+body {
+    background-color: var(--viper-dark); color: var(--text-main); font-family: 'Inter', sans-serif; min-height: 100vh;
+    background-image: radial-gradient(circle at top right, rgba(230, 0, 0, 0.08), transparent 40%);
+}
+
+h1, h2, h3, h4, .brand-title { font-family: 'Montserrat', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+.text-viper { color: var(--viper-red) !important; }
+
+.card { background-color: var(--viper-card); border: 1px solid var(--viper-border); border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.35); transition: box-shadow 0.2s ease; }
+.card-finance { border-left: 4px solid var(--viper-red); background: linear-gradient(145deg, #141414, #1a1a1a); }
+.card-finance-success { border-left: 4px solid #00E676; }
+.card-finance-warning { border-left: 4px solid #ffc107; }
+
+.form-label { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.form-control { background-color: rgba(255,255,255,0.03); border: 1px solid var(--viper-border); color: #fff; border-radius: 8px; padding: 0.6rem 1rem; transition: all 0.3s ease; }
+.form-control:focus { background-color: rgba(230, 0, 0, 0.05); color: #fff; border-color: var(--viper-red); box-shadow: 0 0 0 0.25rem rgba(230, 0, 0, 0.25); }
+::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
+
+.btn-viper { background-color: var(--viper-red); color: #fff; border: none; border-radius: 8px; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease; }
+.btn-viper:hover { background-color: #ff1a1a; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(230, 0, 0, 0.5); }
+.btn-viper:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* Seletor Novato / Veterano (btn-check + btn-outline-light) */
+.btn-check:checked + .btn-outline-light { background-color: var(--viper-red); border-color: var(--viper-red); color: #fff; }
+.form-text { font-size: 0.78rem; }
+
+.table { --bs-table-bg: transparent; --bs-table-color: var(--text-main); margin-bottom: 0; }
+.table thead th { border-bottom: 2px solid var(--viper-border); color: var(--text-muted); font-family: 'Montserrat', sans-serif; font-size: 0.8rem; }
+.table tbody tr { border-bottom: 1px solid var(--viper-border); transition: all 0.2s; }
+.table tbody tr:hover { background-color: rgba(255,255,255,0.02); }
+.table tbody td { vertical-align: middle; padding: 1rem 0.5rem; }
+
+.badge { border-radius: 6px; padding: 0.5em 0.8em; font-weight: 500; }
+.bg-success { background-color: rgba(40, 167, 69, 0.2) !important; color: #28a745 !important; border: 1px solid #28a745; }
+.bg-danger { background-color: rgba(230, 0, 0, 0.2) !important; color: var(--viper-red) !important; border: 1px solid var(--viper-red); }
+.bg-warning { background-color: rgba(255, 193, 7, 0.18) !important; color: #ffc107 !important; border: 1px solid #ffc107; }
+.bg-secondary { background-color: rgba(255, 255, 255, 0.06) !important; color: var(--text-muted) !important; border: 1px solid var(--viper-border); }
+
+/* Validação de formulário no tema escuro */
+.form-control.is-invalid { border-color: var(--viper-red); background-image: none; padding-right: 1rem; }
+.form-control.is-valid { border-color: #28a745; background-image: none; padding-right: 1rem; }
+.invalid-feedback { color: #ff6b6b; font-size: 0.8rem; }
+
+/* Tela de carregamento inicial */
+#overlayCarregando {
+    position: fixed; inset: 0; z-index: 2000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background-color: var(--viper-dark); color: var(--text-muted);
+    transition: opacity 0.3s ease;
+}
+#overlayCarregando.escondido { opacity: 0; pointer-events: none; }
+
+.btn-action { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; }
+.acoes-aluno { display: flex; gap: 0.35rem; justify-content: flex-end; }
+.team-logo { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; box-shadow: 0 0 15px rgba(230, 0, 0, 0.4); border: 2px solid var(--viper-red); }
+
+/* Tabela de histórico de pagamentos (dentro do modal SweetAlert2) */
+.tabela-historico { width: 100%; font-size: 0.9rem; }
+.tabela-historico th { text-align: left; color: var(--text-muted); font-weight: 500; padding-bottom: 0.5rem; border-bottom: 1px solid var(--viper-border); }
+.tabela-historico td { padding: 0.5rem 0; border-bottom: 1px solid var(--viper-border); }
+
+/* Indicador de status do robô do WhatsApp */
+.status-bar { display: flex; align-items: center; justify-content: center; gap: 0.6rem; flex-wrap: wrap; }
+.status-whatsapp { display: inline-block; font-size: 0.8rem; font-weight: 600; padding: 0.3em 0.9em; border-radius: 20px; letter-spacing: 0.5px; }
+.status-whatsapp.conectado { color: #28a745; background-color: rgba(40, 167, 69, 0.12); border: 1px solid rgba(40, 167, 69, 0.4); }
+.status-whatsapp.desconectado { color: var(--viper-red); background-color: rgba(230, 0, 0, 0.12); border: 1px solid rgba(230, 0, 0, 0.4); }
+.status-whatsapp.aguardando { color: #ffc107; background-color: rgba(255, 193, 7, 0.12); border: 1px solid rgba(255, 193, 7, 0.4); }
+.status-whatsapp.verificando { color: var(--text-muted); background-color: rgba(255,255,255,0.05); border: 1px solid var(--viper-border); }
+#btnIniciarWhatsapp { border-radius: 20px; padding: 0.3em 1em; font-size: 0.8rem; }
+
+/* Estado vazio da tabela */
+.tabela-vazia td { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+.tabela-vazia i { font-size: 2rem; display: block; margin-bottom: 0.75rem; opacity: 0.5; }
+
+/* Estilo das Abas de Navegação */
+.nav-tabs { border-bottom: 2px solid var(--viper-border); margin-bottom: 2rem; }
+.nav-link { color: var(--text-muted); font-family: 'Montserrat', sans-serif; font-weight: 700; border: none; padding: 1rem 2rem; border-bottom: 3px solid transparent; background: transparent; transition: all 0.3s; }
+.nav-link:hover { color: #fff; }
+.nav-link.active { color: var(--viper-red); background: transparent; border-bottom: 3px solid var(--viper-red); }
+
+/* Ocultar abas inativas */
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.5s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
