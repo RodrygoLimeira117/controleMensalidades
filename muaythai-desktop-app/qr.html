@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Conectar WhatsApp</title>
+    <style>
+        body {
+            margin: 0; height: 100vh; box-sizing: border-box; padding: 24px;
+            background-color: #0a0a0a; color: #f0f0f0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center;
+        }
+        h2 { margin: 0 0 4px; font-size: 1.3rem; }
+        p { color: #a0a0a0; font-size: 0.85rem; margin: 8px 0; max-width: 280px; }
+        img { width: 220px; height: 220px; padding: 10px; background: #fff; border-radius: 8px; margin: 16px 0; }
+        .spinner {
+            border: 4px solid #2a2a2a; border-top-color: #E60000; border-radius: 50%;
+            width: 40px; height: 40px; animation: girar 1s linear infinite; margin: 28px 0;
+        }
+        @keyframes girar { to { transform: rotate(360deg); } }
+        .sucesso { color: #28a745; font-weight: 700; font-size: 1.1rem; margin-top: 16px; }
+    </style>
+</head>
+<body>
+    <h2>Conectar WhatsApp</h2>
+    <div id="conteudo">
+        <div class="spinner"></div>
+        <p>Gerando QR code...</p>
+    </div>
+
+    <script>
+        const STATUS_URL = 'http://localhost:3000/api/whatsapp/status';
+        const QR_URL = 'http://localhost:3000/api/whatsapp/qr';
+        const conteudo = document.getElementById('conteudo');
+
+        async function atualizar() {
+            try {
+                const statusResp = await fetch(STATUS_URL);
+                const status = await statusResp.json();
+
+                if (status.conectado) {
+                    conteudo.innerHTML = '<p class="sucesso">✔ WhatsApp conectado!</p><p>Pode fechar esta janela.</p>';
+                    clearInterval(intervalo);
+                    return;
+                }
+
+                const qrResp = await fetch(QR_URL);
+                const dadosQr = await qrResp.json();
+
+                if (dadosQr.qr) {
+                    conteudo.innerHTML = '<img src="' + dadosQr.qr + '" alt="QR code">' +
+                        '<p>Abra o WhatsApp no celular → Configurações → Aparelhos conectados → Conectar um aparelho, e escaneie.</p>';
+                } else {
+                    conteudo.innerHTML = '<div class="spinner"></div><p>Gerando QR code...</p>';
+                }
+            } catch (erro) {
+                conteudo.innerHTML = '<div class="spinner"></div><p>Aguardando o robô iniciar...</p>';
+            }
+        }
+
+        atualizar();
+        const intervalo = setInterval(atualizar, 3000);
+    </script>
+</body>
+</html>

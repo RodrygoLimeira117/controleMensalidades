@@ -1,0 +1,82 @@
+# Sobe o backend (API Java) e o worker do WhatsApp (Node.js) juntos, na mesma
+# rede Docker, prontos para conversar entre si pelo nome do serviço.
+#
+# O app desktop (Electron) NÃO entra aqui: é um app de mesa que roda na
+# máquina do usuário e só precisa que a API (porta 8080) e o worker
+# (porta 3000) estejam expostos em localhost — o que este compose já faz.
+#
+# Uso:
+#   1) cp .env.example .env   (e ajuste as senhas/segredos)
+#   2) docker compose up --build -d
+#   3) docker compose logs -f whatsapp-worker   (escaneie o QR code que aparece)
+#
+# services e "profiles" usam a mesma sintaxe pra dev e produção; em produção,
+# lembre de sobrescrever o .env com valores fortes (JWT_SECRET, senhas, etc).
+
+services:
+
+  api:
+    build:
+      context: ./muaythai-api
+      dockerfile: Dockerfile
+    container_name: muaythai-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8080}:8080"
+    environment:
+      # Banco H2 (arquivo) fica dentro do volume "banco-dados", montado em /data.
+      # Para trocar por PostgreSQL (ex.: RDS na AWS), basta sobrescrever DB_URL/DB_DRIVER/DB_DIALECT
+      # no .env - o Flyway cria as tabelas automaticamente no banco novo, não precisa rodar nada na mão.
+      DB_URL: ${DB_URL:-jdbc:h2:file:/data/banco_tatame;AUTO_SERVER=TRUE}
+      DB_DRIVER: ${DB_DRIVER:-org.h2.Driver}
+      DB_DIALECT: ${DB_DIALECT:-org.hibernate.dialect.H2Dialect}
+      DB_USERNAME: ${DB_USERNAME:-admin}
+      DB_PASSWORD: ${DB_PASSWORD:-admin}
+      H2_CONSOLE_ENABLED: ${H2_CONSOLE_ENABLED:-true}
+
+      JWT_SECRET: ${JWT_SECRET:?defina um JWT_SECRET forte no .env}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-28800000}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?defina uma senha forte para o admin no .env}
+
+      # Nome do serviço "whatsapp-worker" funciona como hostname na rede interna do Docker
+      WORKER_WHATSAPP_URL: "http://whatsapp-worker:3000/api/whatsapp/enviar"
+      WORKER_WHATSAPP_CONNECT_TIMEOUT_MS: ${WORKER_WHATSAPP_CONNECT_TIMEOUT_MS:-3000}
+      WORKER_WHATSAPP_READ_TIMEOUT_MS: ${WORKER_WHATSAPP_READ_TIMEOUT_MS:-5000}
+
+      MENSALIDADE_VALOR_NOVATO: ${MENSALIDADE_VALOR_NOVATO:-80}
+      MENSALIDADE_VALOR_VETERANO: ${MENSALIDADE_VALOR_VETERANO:-70}
+    volumes:
+      - banco-dados:/data
+    depends_on:
+      whatsapp-worker:
+        condition: service_healthy
+    networks:
+      - muaythai-net
+
+  whatsapp-worker:
+    build:
+      context: ./muaythai-whatsapp-worker
+      dockerfile: Dockerfile
+    container_name: muaythai-whatsapp-worker
+    restart: unless-stopped
+    ports:
+      - "${WORKER_PORT:-3000}:3000"
+    environment:
+      PORT: 3000
+    volumes:
+      # Sessão autenticada do WhatsApp (LocalAuth) - sem isso, precisaria
+      # escanear o QR code de novo toda vez que o container reiniciar.
+      - whatsapp-sessao:/app/.wwebjs_auth
+      - whatsapp-cache:/app/.wwebjs_cache
+    networks:
+      - muaythai-net
+
+networks:
+  muaythai-net:
+    driver: bridge
+
+volumes:
+  banco-dados:
+  whatsapp-sessao:
+  whatsapp-cache:
