@@ -122,6 +122,23 @@ DB_PASSWORD=...
 
 Na primeira subida contra um banco vazio, o Flyway cria as 4 tabelas sozinho a partir do `V1__create_tables.sql`.
 
+## 📖 Documentação Interativa (Swagger / OpenAPI)
+
+Com a API rodando, a documentação de todos os endpoints fica disponível em:
+
+- **Swagger UI:** http://localhost:8080/swagger-ui.html
+- **Spec OpenAPI (JSON):** http://localhost:8080/v3/api-docs
+
+### Como testar endpoints protegidos por lá
+1. Abra o Swagger UI e expanda **Autenticação → POST /api/auth/login**.
+2. Clique em "Try it out", preencha usuário/senha (ex.: `admin`/`admin123` em dev) e execute.
+3. Copie o valor do campo `token` da resposta.
+4. Clique no botão **Authorize** (cadeado no canto superior direito da página) e cole o token ali (sem escrever "Bearer", o Swagger já adiciona sozinho).
+5. Pronto — agora todas as chamadas que você testar pela página (criar aluno, registrar pagamento, editar configurações, etc.) já vão com o token, sem precisar copiar/colar header nenhum.
+
+### Desligando em produção
+Se preferir não deixar a documentação pública num ambiente de produção, defina `SWAGGER_ENABLED=false` no `.env` (ou como variável de ambiente) — isso desliga tanto a página quanto a spec JSON. Os endpoints da API continuam funcionando normalmente; só a documentação some.
+
 ## 🛡️ Segurança e Boas Práticas
 
 - **Validação de Entrada:** Máscaras no frontend e Bean Validation (`@Valid`, `@NotBlank`, `@Size`) no backend garantem integridade dos CPFs e telemóveis.
