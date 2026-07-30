@@ -1,0 +1,64 @@
+{
+  "name": "muaythai-desktop-app",
+  "version": "1.0.0",
+  "description": "App desktop de gestão de atletas e mensalidades da Vipers Fight Team",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^43.1.1",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.vipersfightteam.gestao",
+    "productName": "Vipers Fight Team - Gestão",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "index.html",
+      "app.js",
+      "styles.css",
+      "splash.html",
+      "qr.html",
+      "preload.js",
+      "logo.png",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "backend",
+        "filter": ["app.jar"]
+      },
+      {
+        "from": "runtime/jre-win-x64",
+        "to": "runtime/jre-win-x64",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../muaythai-whatsapp-worker",
+        "to": "whatsapp-worker",
+        "filter": ["**/*", "!*.env", "!.env"]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "logo.png"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "logo.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "logo.png"
+    }
+  }
+}
