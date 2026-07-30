@@ -28,6 +28,8 @@ O projeto adota uma abordagem de Monorepo, contendo os seguintes módulos:
 
 ## ⚙️ Como Executar Localmente
 
+> 🚀 **Jeito mais rápido:** dê duplo clique em **`Iniciar Vipers.bat`**, na raiz do projeto. Ele compila a API na primeira vez, sobe ela em segundo plano e abre o app - sem precisar abrir terminal nenhum. As opções abaixo são para quem quer rodar cada parte manualmente (ex.: para desenvolver/depurar).
+
 ### Pré-requisitos
 - JDK 21+
 - Maven (para rodar `mvn spring-boot:run`)
@@ -35,31 +37,57 @@ O projeto adota uma abordagem de Monorepo, contendo os seguintes módulos:
 
 > Não é preciso instalar nenhum banco de dados: a API usa H2 em modo arquivo, criado automaticamente na primeira execução.
 
-### 1. Backend (Java/Spring Boot)
+Desde que o app desktop passou a subir a API e o worker do WhatsApp sozinho (ver [seção do instalador](#-instalador-tudo-junto) abaixo), você tem dois jeitos de desenvolver:
+
+### Opção A — Rápido para mexer só na interface (recomendado no dia a dia)
+Continue rodando a API pelo IntelliJ/`mvn spring-boot:run` como sempre. O Electron detecta que não tem um `.jar` empacotado em `backend/app.jar` e entende que está em modo dev: ele só fica esperando a API responder em `localhost:8080`, sem tentar subir a sua própria cópia.
+
 ```bash
+# Terminal 1
 cd muaythai-api
 mvn spring-boot:run
-```
-*A API ficará disponível em `http://localhost:8080`*
 
-### 2. Worker do WhatsApp (Node.js)
-
-Não precisa rodar este passo manualmente: o app desktop liga o worker sozinho (aba Configurações → "Iniciar Robô") e mostra o QR code direto na tela. Isso só é necessário se quiser rodar o worker separadamente para depurar:
-```bash
-cd muaythai-whatsapp-worker
-npm install
-# Crie o ficheiro .env na raiz desta pasta com PORT=3000
-npm start
-```
-*O Chrome roda invisível (headless); o QR code aparece no app desktop, não numa janela de navegador.*
-
-### 3. Aplicativo Desktop (Electron)
-```bash
+# Terminal 2
 cd muaythai-desktop-app
 npm install
 npm start
 ```
-*A interface gráfica da Vipers abrirá como uma aplicação nativa no seu sistema. Na aba Configurações, clique em "Iniciar Robô" para ligar o WhatsApp e escanear o QR code.*
+*O worker do WhatsApp já sobe sozinho junto com o Electron (usando o Node embutido nele) - não precisa de um terceiro terminal. A janela do QR code abre automaticamente quando você clicar em "Iniciar Robô" na aba Configurações.*
+
+### Opção B — Testar o comportamento "tudo junto" de verdade (como vai ficar instalado)
+Roda o script que empacota tudo (API compilada + JRE portátil + worker) e usa o app exatamente como um usuário final:
+```powershell
+.\scripts\preparar-instalador-windows.ps1
+```
+Isso gera um instalador em `muaythai-desktop-app\dist\`. Veja a seção seguinte para detalhes.
+
+## 📦 Instalador "Tudo Junto"
+
+O app desktop não é mais "só a interface": ao abrir, ele sobe sozinho a API (Java) e o worker do WhatsApp (Node) como processos internos, com uma tela de carregamento enquanto isso acontece. Quem instalar não precisa ter Java, Node, Maven ou npm na máquina — nem abrir terminal nenhum. É só instalar e usar, como qualquer outro programa do Windows.
+
+### Como funciona por baixo dos panos
+- **API:** roda com um **JRE portátil** (Java "de mentirinha", baixado uma vez e empacotado junto do instalador) — o usuário final não instala Java.
+- **Worker do WhatsApp:** roda usando o **próprio Node.js embutido no Electron** (truque `ELECTRON_RUN_AS_NODE`) — o usuário final não instala Node.
+- **Banco de dados e sessão do WhatsApp:** ficam salvos numa pasta própria do Windows (`%APPDATA%\vipers-fight-team-gestao`), não dentro da pasta de instalação — assim funcionam mesmo com o programa instalado em "Arquivos de Programas" (que é somente leitura para o usuário comum).
+- **Senha do administrador:** gerada aleatoriamente no primeiro uso (nunca mais `admin123`) e mostrada **uma única vez** numa caixa de diálogo — anote nesse momento.
+- **Segredo do JWT:** também gerado aleatoriamente no primeiro uso e reaproveitado nas próximas aberturas do app.
+
+### Gerando o instalador
+Pré-requisitos na sua máquina de desenvolvimento (não na do usuário final): JDK 21, Maven, Node.js/npm.
+
+```powershell
+.\scripts\preparar-instalador-windows.ps1
+```
+
+O script, na ordem:
+1. Compila a API (`mvn clean package`) e copia o `.jar` para `muaythai-desktop-app\backend\app.jar`
+2. Baixa um JRE portátil (Eclipse Temurin 21) para `muaythai-desktop-app\runtime\jre-win-x64` — só na primeira vez, os próximos builds reaproveitam
+3. Instala as dependências do worker (`npm install --omit=dev`, inclui o download do Chromium usado pelo WhatsApp)
+4. Instala as dependências do Electron e gera o instalador com `electron-builder`
+
+O instalador final (`.exe`) fica em `muaythai-desktop-app\dist\`.
+
+> ⚠️ **Sobre code signing:** o instalador gerado não é assinado digitalmente (isso exige comprar um certificado de desenvolvedor). O Windows SmartScreen provavelmente vai avisar "Editor desconhecido" na primeira execução — é esperado, clique em "Mais informações" → "Executar assim mesmo". Isso não afeta o funcionamento do app, só a mensagem de aviso.
 
 ## 🐳 Rodando com Docker
 
@@ -138,6 +166,49 @@ Com a API rodando, a documentação de todos os endpoints fica disponível em:
 
 ### Desligando em produção
 Se preferir não deixar a documentação pública num ambiente de produção, defina `SWAGGER_ENABLED=false` no `.env` (ou como variável de ambiente) — isso desliga tanto a página quanto a spec JSON. Os endpoints da API continuam funcionando normalmente; só a documentação some.
+
+## 💾 Backup Automático
+
+O banco de dados (cadastro de alunos, histórico de pagamentos) é um arquivo só — se o disco onde ele está morrer sem backup, você perde tudo. Os scripts em `scripts/` automatizam isso.
+
+### Qual script usar
+
+| Como você roda o projeto | Script |
+|---|---|
+| `mvn spring-boot:run` / IntelliJ, no Windows | `scripts/backup-h2-windows.ps1` |
+| `mvn spring-boot:run` / IntelliJ, no Linux/Mac | `scripts/backup-h2-linux-mac.sh` |
+| `docker compose up` | `scripts/backup-docker-volumes.sh` |
+
+Por padrão, todos salvam em `vipers-backups` dentro da sua pasta de usuário e apagam backups com mais de 30 dias sozinhos.
+
+### Backup na nuvem sem precisar de API nem senha
+
+O jeito mais simples: instale o **Google Drive Desktop** (ou OneDrive/Dropbox), que cria uma pasta local sincronizada automaticamente. Depois, edite a variável `$PastaDestino` (Windows) ou `PASTA_DESTINO` (Linux/Mac/Docker) no início do script pra apontar pra essa pasta — por exemplo:
+
+```powershell
+$PastaDestino = "G:\Meu Drive\Backups-Vipers"
+```
+
+Assim, o script só copia o arquivo pra pasta local, e o Google Drive cuida de subir pra nuvem sozinho.
+
+### Agendando para rodar sozinho
+
+**Windows (Tarefas Agendadas):**
+1. Abra o "Agendador de Tarefas" (Task Scheduler)
+2. "Criar Tarefa Básica" → escolha rodar diariamente (ex.: todo dia às 22h)
+3. Ação: "Iniciar um programa"
+   - Programa: `powershell.exe`
+   - Argumentos: `-ExecutionPolicy Bypass -File "C:\caminho\completo\para\scripts\backup-h2-windows.ps1"`
+
+**Linux/Mac (cron):**
+```bash
+crontab -e
+# adicione a linha abaixo para rodar todo dia às 22h:
+0 22 * * * /caminho/completo/para/scripts/backup-h2-linux-mac.sh >> ~/vipers-backups/backup.log 2>&1
+```
+
+### Restaurando um backup
+Basta parar a API, substituir o arquivo `banco_tatame.mv.db` (Windows/Linux/Mac) pelo backup desejado — ou, no Docker, `docker run --rm -v <volume>:/destino -v <pasta-backup>:/origem alpine sh -c "rm -rf /destino/* && tar xzf /origem/SEU_BACKUP.tar.gz -C /destino"` — e subir a API de novo.
 
 ## 🛡️ Segurança e Boas Práticas
 
